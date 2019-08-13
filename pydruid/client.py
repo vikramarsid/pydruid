@@ -18,6 +18,7 @@ from __future__ import absolute_import
 
 import json
 import re
+import ssl
 
 from six.moves import urllib
 
@@ -30,17 +31,22 @@ HTML_ERROR = re.compile("<pre>\\s*(.*?)\\s*</pre>", re.IGNORECASE)
 
 
 class BaseDruidClient(object):
-    def __init__(self, url, endpoint):
+    def __init__(self, url, endpoint, **kwargs):
         self.url = url
         self.endpoint = endpoint
         self.query_builder = QueryBuilder()
         self.username = None
         self.password = None
         self.proxies = None
+        self.extra_headers = kwargs.get("extra_headers", False)
+        self.ignore_certificate_errors = kwargs.get("ignore_certificate_errors", False)
 
     def set_basic_auth_credentials(self, username, password):
         self.username = username
         self.password = password
+
+    def set_ignore_certificate_errors(self, value=True):
+        self.ignore_certificate_errors = value
 
     def set_proxies(self, proxies):
         self.proxies = proxies
@@ -55,6 +61,8 @@ class BaseDruidClient(object):
         else:
             url = self.url + "/" + self.endpoint
         headers = {"Content-Type": "application/json"}
+        if self.extra_headers and isinstance(self.extra_headers, dict):
+            headers.update(self.extra_headers)
         if (self.username is not None) and (self.password is not None):
             authstring = "{}:{}".format(self.username, self.password)
             b64string = b64encode(authstring.encode()).decode()
@@ -477,9 +485,6 @@ class PyDruid(BaseDruidClient):
 
     :param str url: URL of Broker node in the Druid cluster
     :param str endpoint: Endpoint that Broker listens for queries on
-    :param str cafile: Optional cafile that point to a single file
-    containing a bundle of CA certificates, useful when using Imply Cloud or
-    other Druid deployments via HTTPS.
 
     Example
 
@@ -545,15 +550,21 @@ class PyDruid(BaseDruidClient):
                 1      6  2013-10-04T00:00:00.000Z         user_2
     """
 
-    def __init__(self, url, endpoint, cafile=None):
-        super(PyDruid, self).__init__(url, endpoint)
-        self.cafile = cafile
+    def __init__(self, url, endpoint, **kwargs):
+        super(PyDruid, self).__init__(url, endpoint, **kwargs)
+
+    def ssl_context(self):
+        ctx = ssl.create_default_context()
+        if self.ignore_certificate_errors:
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+        return ctx
 
     def _post(self, query):
         try:
             headers, querystr, url = self._prepare_url_headers_and_body(query)
             req = urllib.request.Request(url, querystr, headers)
-            res = urllib.request.urlopen(url=req, cafile=self.cafile)
+            res = urllib.request.urlopen(req, context=self.ssl_context())
             data = res.read().decode("utf-8")
             res.close()
         except urllib.error.HTTPError as e:
@@ -600,8 +611,8 @@ class PyDruid(BaseDruidClient):
 
         :param pydruid.utils.filters.Filter filter: Indicates which rows of
           data to include in the query
-        :param list columns: The list of columns to select. If left
-          empty, all columns are returned
+        :param list dimensions: The list of dimensions to select. If left
+          empty, all dimensions are returned
         :param list metrics: The list of metrics to select. If left empty,
           all metrics are returned
         :param dict context: A dict of query context options
