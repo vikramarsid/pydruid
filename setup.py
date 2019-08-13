@@ -2,7 +2,7 @@ import io
 import sys
 from setuptools import setup
 
-install_requires = ["six >= 1.9.0", "requests"]
+install_requires = ["six >= 1.9.0", "requests", "orjson"]
 
 extras_require = {
     "pandas": ["pandas"],
