@@ -112,6 +112,10 @@ class Filter:
             self.filter["filter"].update(
                 {"dimension": args["dimension"], "pattern": args["pattern"]}
             )
+        elif type_ == "expression":
+            self.filter["expression"].update(
+                {"type": "expression", "expression": args["expression"]}
+            )
         else:
             raise NotImplementedError("Filter type: {0} does not exist".format(type_))
 
