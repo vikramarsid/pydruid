@@ -15,7 +15,12 @@
 #
 
 import six
-import orjson as json
+
+try:
+    import orjson as json
+except ImportError:
+    import json
+
 import collections
 from pydruid.utils.aggregators import build_aggregators
 from pydruid.utils.filters import Filter
@@ -513,7 +518,7 @@ class QueryBuilder(object):
             "metrics",
             "intervals",
             "limit",
-            "order"
+            "order",
         ]
         self.validate_query(query_type, valid_parts, args)
         return self.build_query(query_type, args)

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 try:
-    import simplejson as json
+    import orjson as json
 except ImportError:
     import json
 

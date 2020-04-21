@@ -5,9 +5,10 @@ from __future__ import unicode_literals
 
 from collections import namedtuple, OrderedDict
 import itertools
-import json
 from six import string_types
 from six.moves.urllib import parse
+
+import json
 
 import requests
 
