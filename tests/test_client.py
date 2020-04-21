@@ -90,31 +90,31 @@ class TestPyDruid:
             == textwrap.dedent(
                 """
             HTTP Error 500: Internal Server Error
-             Druid Error: javax.servlet.ServletException: java.lang.OutOfMemoryError: GC overhead limit exceeded
-             Query is: {
-                "aggregations": [
-                    {
-                        "fieldName": "count",
-                        "name": "count",
-                        "type": "doubleSum"
-                    }
-                ],
-                "context": {
-                    "timeout": 1000
-                },
-                "dataSource": "testdatasource",
-                "dimension": "user_name",
-                "filter": {
-                    "dimension": "user_lang",
-                    "type": "selector",
-                    "value": "en"
-                },
-                "granularity": "all",
-                "intervals": "2015-12-29/pt1h",
-                "metric": "count",
-                "queryType": "topN",
-                "threshold": 1
-            }
+ Druid Error: javax.servlet.ServletException: java.lang.OutOfMemoryError: GC overhead limit exceeded
+ Query is: {
+    "aggregations": [
+        {
+            "fieldName": "count",
+            "name": "count",
+            "type": "doubleSum"
+        }
+    ],
+    "context": {
+        "timeout": 1000
+    },
+    "dataSource": "testdatasource",
+    "dimension": "user_name",
+    "filter": {
+        "dimension": "user_lang",
+        "type": "selector",
+        "value": "en"
+    },
+    "granularity": "all",
+    "intervals": "2015-12-29/pt1h",
+    "metric": "count",
+    "queryType": "topN",
+    "threshold": 1
+}
         """
             ).strip()
         )

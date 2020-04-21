@@ -16,10 +16,7 @@
 from __future__ import division
 from __future__ import absolute_import
 
-try:
-    import orjson as json
-except ImportError:
-    import json
+import json
 
 import re
 import ssl
