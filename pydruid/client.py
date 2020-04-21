@@ -485,6 +485,9 @@ class PyDruid(BaseDruidClient):
 
     :param str url: URL of Broker node in the Druid cluster
     :param str endpoint: Endpoint that Broker listens for queries on
+    :param str cafile: Optional cafile that point to a single file
+    containing a bundle of CA certificates, useful when using Imply Cloud or
+    other Druid deployments via HTTPS.
 
     Example
 
@@ -552,6 +555,7 @@ class PyDruid(BaseDruidClient):
 
     def __init__(self, url, endpoint, **kwargs):
         super(PyDruid, self).__init__(url, endpoint, **kwargs)
+        self.cafile = kwargs.get("cafile")
 
     def ssl_context(self):
         ctx = ssl.create_default_context()
@@ -564,7 +568,9 @@ class PyDruid(BaseDruidClient):
         try:
             headers, querystr, url = self._prepare_url_headers_and_body(query)
             req = urllib.request.Request(url, querystr, headers)
-            res = urllib.request.urlopen(req, context=self.ssl_context())
+            res = urllib.request.urlopen(
+                req, cafile=self.cafile, context=self.ssl_context()
+            )
             data = res.read().decode("utf-8")
             res.close()
         except urllib.error.HTTPError as e:
@@ -611,8 +617,8 @@ class PyDruid(BaseDruidClient):
 
         :param pydruid.utils.filters.Filter filter: Indicates which rows of
           data to include in the query
-        :param list dimensions: The list of dimensions to select. If left
-          empty, all dimensions are returned
+        :param list columns: The list of columns to select. If left
+          empty, all columns are returned
         :param list metrics: The list of metrics to select. If left empty,
           all metrics are returned
         :param dict context: A dict of query context options
