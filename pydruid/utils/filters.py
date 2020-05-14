@@ -98,8 +98,8 @@ class Filter:
                 {"dimension": args["dimension"], "value": args["value"]}
             )
         elif type_ == "search":
-            self.filter["filter"].update(
-                {
+            if args.get("value"):
+                s_filter = {
                     "dimension": args["dimension"],
                     "query": {
                         "type": "contains",
@@ -107,7 +107,20 @@ class Filter:
                         "caseSensitive": args.get("caseSensitive", "false"),
                     },
                 }
-            )
+            elif args.get("values"):
+                s_filter = {
+                    "dimension": args["dimension"],
+                    "query": {
+                        "type": "fragment",
+                        "values": args["values"],
+                        "caseSensitive": args.get("caseSensitive", "false"),
+                    },
+                }
+            else:
+                raise ValueError(
+                    "Search Filter requires either value(contains) or values(fragment) for search"
+                )
+            self.filter["filter"].update(s_filter)
         elif type_ == "like":
             self.filter["filter"].update(
                 {"dimension": args["dimension"], "pattern": args["pattern"]}
@@ -143,23 +156,29 @@ class Filter:
 
     @staticmethod
     def build_filter(filter_obj):
-        filter = filter_obj.filter["filter"]
-        if filter["type"] in ["and", "or"]:
-            filter = filter.copy()  # make a copy so we don't overwrite `fields`
-            filter["fields"] = [Filter.build_filter(f) for f in filter["fields"]]
-        elif filter["type"] in ["not"]:
-            filter = filter.copy()
-            filter["field"] = Filter.build_filter(filter["field"])
-        elif filter["type"] in ["columnComparison"]:
-            filter = filter.copy()
-            filter["dimensions"] = [build_dimension(d) for d in filter["dimensions"]]
+        query_filter = filter_obj.filter["filter"]
+        if query_filter["type"] in ["and", "or"]:
+            query_filter = (
+                query_filter.copy()
+            )  # make a copy so we don't overwrite `fields`
+            query_filter["fields"] = [
+                Filter.build_filter(f) for f in query_filter["fields"]
+            ]
+        elif query_filter["type"] in ["not"]:
+            query_filter = query_filter.copy()
+            query_filter["field"] = Filter.build_filter(query_filter["field"])
+        elif query_filter["type"] in ["columnComparison"]:
+            query_filter = query_filter.copy()
+            query_filter["dimensions"] = [
+                build_dimension(d) for d in query_filter["dimensions"]
+            ]
 
         if filter_obj.extraction_function is not None:
-            if filter is filter_obj.filter["filter"]:  # copy if not yet copied
-                filter = filter.copy()
-            filter["extractionFn"] = filter_obj.extraction_function.build()
+            if query_filter is filter_obj.filter["filter"]:  # copy if not yet copied
+                query_filter = query_filter.copy()
+            query_filter["extractionFn"] = filter_obj.extraction_function.build()
 
-        return filter
+        return query_filter
 
 
 class Dimension:

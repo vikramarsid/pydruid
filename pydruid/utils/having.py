@@ -22,10 +22,7 @@ except ImportError:
 class Having:
     def __init__(self, **args):
 
-        if args["type"] == "filter":
-            self.having = {"having": {"type": args["type"], "filter": args["filter"]}}
-
-        elif args["type"] in ("equalTo", "lessThan", "greaterThan"):
+        if args["type"] in ("equalTo", "lessThan", "greaterThan"):
             self.having = {
                 "having": {
                     "type": args["type"],
