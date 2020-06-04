@@ -122,8 +122,13 @@ class Filter:
                 )
             self.filter["filter"].update(s_filter)
         elif type_ == "like":
+            escape = args["escape"] if args.get("escape") else "\\"
             self.filter["filter"].update(
-                {"dimension": args["dimension"], "pattern": args["pattern"]}
+                {
+                    "dimension": args["dimension"],
+                    "pattern": args["pattern"],
+                    "escape": escape,
+                }
             )
         elif type_ == "expression":
             self.filter["expression"].update(
